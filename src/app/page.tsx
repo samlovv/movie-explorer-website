@@ -1,15 +1,21 @@
 import { tmdb } from "@/lib/tmdb";
 import Link from "next/link";
+import { getGenres, getGenreNames } from "@/lib/genres";
 
 type Movie = {
   id: number;
   title: string;
   poster_path: string;
   vote_average: number;
+  genre_ids: number[];
 };
 
 export default async function Home() {
-  const res = await tmdb.get("/movie/popular");
+  const [res, genres] = await Promise.all([
+    tmdb.get("/movie/popular"),
+    getGenres(),
+  ]);
+
   const movies: Movie[] = res.data.results;
 
   return (
@@ -29,7 +35,12 @@ export default async function Home() {
             />
             <div className="p-2">
               <h2 className="text-sm font-semibold truncate">{movie.title}</h2>
-              <p className="text-xs text-gray-400">⭐ {movie.vote_average}</p>
+              <p className="text-xs text-gray-400">
+                ⭐ {movie.vote_average.toFixed(1)}
+              </p>
+              <p className="text-xs text-gray-500 mt-1">
+                {getGenreNames(movie.genre_ids, genres)}
+              </p>
             </div>
           </Link>
         ))}

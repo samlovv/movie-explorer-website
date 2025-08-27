@@ -1,22 +1,27 @@
 import { tmdb } from "@/lib/tmdb";
 import Link from "next/link";
+import { getGenres, getGenreNames, Genre } from "@/lib/genres";
 
-type Params = {
-  params: { id: string };
-};
+type Params = { params: { id: string } };
 
 export default async function MoviePage({ params }: Params) {
-  const res = await tmdb.get(`/movie/${params.id}`);
-  const movie = res.data;
+  const [res, genres] = await Promise.all([
+    tmdb.get(`/movie/${params.id}`),
+    getGenres(),
+  ]);
 
-  const creditsRes = await tmdb.get(`/movie/${params.id}/credits`);
-  const credits = creditsRes.data;
+  const movie = res.data;
+  const movieGenres: Genre[] = movie.genres; // TMDB уже возвращает массив жанров с id и name
 
   return (
     <main className="p-6">
       <div className="flex flex-col md:flex-row gap-6 mb-6">
         <img
-          src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+          src={
+            movie.poster_path
+              ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+              : "/no-image.jpg"
+          }
           alt={movie.title}
           className="w-full md:w-1/3 rounded-lg shadow"
         />
@@ -27,35 +32,20 @@ export default async function MoviePage({ params }: Params) {
           <p className="text-yellow-400 font-semibold">
             ⭐ {movie.vote_average.toFixed(1)} / 10
           </p>
-        </div>
-      </div>
 
-      {/* Актёры */}
-      <h2 className="text-2xl font-semibold mb-4">🎭 Актёры</h2>
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-        {credits.cast.slice(0, 12).map((actor: any) => (
-          <Link
-            key={actor.id}
-            href={`/actors/${actor.id}`}
-            className="bg-gray-900 rounded-lg overflow-hidden shadow hover:scale-105 transition"
-          >
-            <img
-              src={
-                actor.profile_path
-                  ? `https://image.tmdb.org/t/p/w500${actor.profile_path}`
-                  : "/no-image.jpg"
-              }
-              alt={actor.name}
-              className="w-full h-auto"
-            />
-            <div className="p-2">
-              <h3 className="text-sm font-semibold truncate">{actor.name}</h3>
-              <p className="text-xs text-gray-400 truncate">
-                {actor.character}
-              </p>
-            </div>
-          </Link>
-        ))}
+          {/* Жанры */}
+          <div className="flex flex-wrap gap-2 mt-4">
+            {movieGenres.map((genre) => (
+              <Link
+                key={genre.id}
+                href={`/genre/${genre.id}/page/1`}
+                className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-500 transition"
+              >
+                {genre.name}
+              </Link>
+            ))}
+          </div>
+        </div>
       </div>
     </main>
   );

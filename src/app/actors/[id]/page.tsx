@@ -19,7 +19,7 @@ export default async function ActorPage({ params }: Params) {
           src={
             actor.profile_path
               ? `https://image.tmdb.org/t/p/w500${actor.profile_path}`
-              : "/no-image.jpg"
+              : "/no-image.png"
           }
           alt={actor.name}
           className="w-full md:w-1/3 rounded-lg shadow"

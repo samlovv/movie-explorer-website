@@ -9,8 +9,8 @@ export default async function ActorPage({ params }: Params) {
   const res = await tmdb.get(`/person/${params.id}`);
   const actor = res.data;
 
-  const creditsRes = await tmdb.get(`/person/${params.id}/movie_credits`);
-  const movies = creditsRes.data.cast;
+  const creditsRes = await tmdb.get(`/person/${params.id}/combined_credits`);
+  const credits = creditsRes.data.cast;
 
   return (
     <main className="p-6">
@@ -31,34 +31,43 @@ export default async function ActorPage({ params }: Params) {
         </div>
       </div>
 
-      {/* Фильмы актёра */}
-      <h2 className="text-2xl font-semibold mb-4">🎬 Фильмы</h2>
+      {/* Работы актёра */}
+      <h2 className="text-2xl font-semibold mb-4">🎬 Работы</h2>
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-        {movies.slice(0, 12).map((movie: any) => (
-          <Link
-            key={movie.id}
-            href={`/movies/${movie.id}`}
-            className="bg-gray-900 rounded-lg overflow-hidden shadow hover:scale-105 transition"
-          >
-            <img
-              src={
-                movie.poster_path
-                  ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
-                  : "/no-image.jpg"
-              }
-              alt={movie.title}
-              className="w-full h-auto"
-            />
-            <div className="p-2">
-              <h3 className="text-sm font-semibold truncate">
-                {movie.title}
-              </h3>
-              <p className="text-xs text-gray-400">
-                ⭐ {movie.vote_average.toFixed(1)}
-              </p>
-            </div>
-          </Link>
-        ))}
+        {credits.slice(0, 12).map((item: any) => {
+          const title = item.media_type === "movie" ? item.title : item.name;
+          const typeLabel = item.media_type === "movie" ? "Фильм" : "Сериал";
+
+          return (
+            <Link
+              key={item.id + item.media_type}
+              href={`/content/${item.media_type}/${item.id}`}
+              className="bg-gray-900 rounded-lg overflow-hidden shadow hover:scale-105 transition relative"
+            >
+              <img
+                src={
+                  item.poster_path
+                    ? `https://image.tmdb.org/t/p/w500${item.poster_path}`
+                    : "/no-image.png"
+                }
+                alt={title}
+                className="w-full h-auto"
+              />
+
+              {/* Метка типа контента */}
+              <span className="absolute top-2 left-2 bg-red-600 text-white text-xs px-2 py-0.5 rounded">
+                {typeLabel}
+              </span>
+
+              <div className="p-2">
+                <h3 className="text-sm font-semibold truncate">{title}</h3>
+                <p className="text-xs text-gray-400">
+                  ⭐ {item.vote_average ? item.vote_average.toFixed(1) : "N/A"}
+                </p>
+              </div>
+            </Link>
+          );
+        })}
       </div>
     </main>
   );

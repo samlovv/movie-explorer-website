@@ -2,31 +2,33 @@ import { tmdb } from "@/lib/tmdb";
 import Link from "next/link";
 import { getGenres, Genre } from "@/lib/genres";
 
-type Params = { params: { id: string } };
+type Params = { params: { id: string; type: "movie" | "tv" } };
 
-export default async function MoviePage({ params }: Params) {
-  const [resMovie, genresRes, videosRes, creditsRes, similarRes] =
-    await Promise.all([
-      tmdb.get(`/movie/${params.id}`),
-      getGenres(),
-      tmdb.get(`/movie/${params.id}/videos`),
-      tmdb.get(`/movie/${params.id}/credits`),
-      tmdb.get(`/movie/${params.id}/similar`),
-    ]);
+export default async function ContentPage({ params }: Params) {
+  const { id, type } = params;
 
-  const movie = resMovie.data;
-  const genres: Genre[] = genresRes;
+  // Получаем данные по типу
+  const movieRes = await tmdb.get(`/${type}/${id}`);
+  const movie = movieRes.data;
+
+  const genres: Genre[] = await getGenres();
+  const [videosRes, creditsRes, similarRes] = await Promise.all([
+    tmdb.get(`/${type}/${id}/videos`),
+    tmdb.get(`/${type}/${id}/credits`),
+    tmdb.get(`/${type}/${id}/similar`), // 👈 похожий контент
+  ]);
+
   const videos = videosRes.data.results;
   const credits = creditsRes.data;
-  const similarMovies = similarRes.data.results;
-
-  // Трейлер
+  const similar = similarRes.data.results;
   const trailer = videos.find(
     (v: any) => v.type === "Trailer" && v.site === "YouTube"
   );
-
-  // Первые 12 актёров
   const cast = credits.cast.slice(0, 12);
+
+  // Название и дата
+  const title = type === "movie" ? movie.title : movie.name;
+  const releaseDate = type === "movie" ? movie.release_date : movie.first_air_date;
 
   return (
     <main className="p-6 max-w-6xl mx-auto">
@@ -38,16 +40,16 @@ export default async function MoviePage({ params }: Params) {
               ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
               : "/no-image.png"
           }
-          alt={movie.title}
+          alt={title}
           className="w-full md:w-1/3 rounded-lg shadow-lg"
         />
 
         <div className="flex-1">
-          <h1 className="text-3xl font-bold mb-2">{movie.title}</h1>
-          <p className="text-gray-400 mb-4">📅 {movie.release_date}</p>
+          <h1 className="text-3xl font-bold mb-2">{title}</h1>
+          <p className="text-gray-400 mb-4">📅 {releaseDate}</p>
           <p className="mb-4">{movie.overview}</p>
           <p className="text-yellow-400 font-semibold mb-4">
-            ⭐ {movie.vote_average.toFixed(1)} / 10
+            ⭐ {movie.vote_average ? movie.vote_average.toFixed(1) : "N/A"}
           </p>
 
           {/* Жанры */}
@@ -103,9 +105,7 @@ export default async function MoviePage({ params }: Params) {
                 />
                 <div className="p-2">
                   <h3 className="text-sm font-semibold truncate">{actor.name}</h3>
-                  <p className="text-xs text-gray-400 truncate">
-                    {actor.character}
-                  </p>
+                  <p className="text-xs text-gray-400 truncate">{actor.character}</p>
                 </div>
               </Link>
             ))}
@@ -113,35 +113,50 @@ export default async function MoviePage({ params }: Params) {
         </section>
       )}
 
-      {/* Похожие фильмы */}
-      {similarMovies.length > 0 && (
+      {/* Похожий контент в стиле Netflix */}
+      {similar.length > 0 && (
         <section className="mt-8">
-          <h2 className="text-2xl font-bold mb-4">Похожие фильмы</h2>
-          <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-900">
-            {similarMovies.map((movie: any) => (
-              <Link
-                key={movie.id}
-                href={`/movies/${movie.id}`}
-                className="flex-none w-40 md:w-48 bg-gray-900 rounded-lg overflow-hidden shadow hover:scale-105 transition-transform"
-              >
-                <img
-                  src={
-                    movie.poster_path
-                      ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
-                      : "/no-image.png"
-                  }
-                  alt={movie.title}
-                  className="w-full h-auto rounded-t-lg"
-                />
-                <div className="p-2">
-                  <h3 className="text-sm font-semibold truncate">{movie.title}</h3>
-                  <p className="text-xs text-gray-400">⭐ {movie.vote_average.toFixed(1)}</p>
-                </div>
-              </Link>
-            ))}
+          <h2 className="text-2xl font-bold mb-4">Похожее</h2>
+          <div className="relative">
+            <div className="flex overflow-x-auto gap-4 snap-x snap-mandatory scrollbar-hide">
+              {similar.map((item: any) => {
+                const simTitle = item.title || item.name;
+                const simType = item.title ? "movie" : "tv";
+                const typeLabel = simType === "movie" ? "Фильм" : "Сериал";
+
+                return (
+                  <Link
+                    key={item.id + simType}
+                    href={`/content/${simType}/${item.id}`}
+                    className="w-[160px] flex-shrink-0 snap-start bg-gray-900 rounded-lg overflow-hidden shadow hover:scale-105 transition relative"
+                  >
+                    <img
+                      src={
+                        item.poster_path
+                          ? `https://image.tmdb.org/t/p/w500${item.poster_path}`
+                          : "/no-image.png"
+                      }
+                      alt={simTitle}
+                      className="w-full h-auto"
+                    />
+                    {/* Метка типа */}
+                    <span className="absolute top-2 left-2 bg-red-600 text-white text-xs px-2 py-0.5 rounded">
+                      {typeLabel}
+                    </span>
+                    <div className="p-2">
+                      <h3 className="text-sm font-semibold truncate">{simTitle}</h3>
+                      <p className="text-xs text-gray-400">
+                        ⭐ {item.vote_average ? item.vote_average.toFixed(1) : "N/A"}
+                      </p>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
           </div>
         </section>
       )}
+
 
     </main>
   );

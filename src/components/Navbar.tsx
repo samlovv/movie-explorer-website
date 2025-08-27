@@ -1,27 +1,39 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 export default function Navbar() {
-  return (
-    <header className="sticky top-0 z-50 bg-black/90 backdrop-blur-sm border-b border-gray-800">
-      <nav className="container mx-auto flex items-center justify-between px-6 py-4">
-        {/* Лого */}
-        <Link href="/" className="text-2xl font-extrabold tracking-wide text-red-600">
-          Movie Explorer
-        </Link>
+  const [query, setQuery] = useState("");
+  const router = useRouter();
 
-        {/* Навигация */}
-        <div className="flex gap-8 text-sm font-medium">
-          <Link href="/" className="hover:text-red-500 transition-colors">
-            Home
-          </Link>
-          <Link href="/movies" className="hover:text-red-500 transition-colors">
-            Movies
-          </Link>
-          <Link href="/actors" className="hover:text-red-500 transition-colors">
-            Actors
-          </Link>
-        </div>
-      </nav>
-    </header>
+  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!query.trim()) return;
+    router.push(`/search/${encodeURIComponent(query)}/page/1`);
+    setQuery("");
+  };
+
+  return (
+    <nav className="bg-gray-900 text-white p-4 flex justify-between items-center">
+      <Link href='/' className="text-2xl font-bold">Movie Explorer</Link>
+
+      <form onSubmit={handleSearch} className="flex">
+        <input
+          type="text"
+          placeholder="Поиск фильма..."
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          className="px-3 py-1 rounded-l bg-gray-800 text-white focus:outline-none"
+        />
+        <button
+          type="submit"
+          className="px-4 py-1 bg-red-600 rounded-r hover:bg-red-500 transition"
+        >
+          Найти
+        </button>
+      </form>
+    </nav>
   );
 }

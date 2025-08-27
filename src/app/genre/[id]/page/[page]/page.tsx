@@ -44,7 +44,7 @@ export default async function GenrePage({ params }: Params) {
               src={
                 movie.poster_path
                   ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
-                  : "/no-image.jpg"
+                  : "/no-image.png"
               }
               alt={movie.title}
               className="w-full h-auto"

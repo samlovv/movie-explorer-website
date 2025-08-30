@@ -50,7 +50,7 @@ export default async function Home() {
             {/* Контейнер с горизонтальным скроллом */}
             <div className="w-full overflow-x-auto pb-4">
               <div className="flex gap-4" style={{ minWidth: "max-content" }}>
-                {section.movies.slice(0, 10).map((movie: Movie) => (
+                {section.movies.slice(0, 20).map((movie: Movie) => (
                   <Link
                     key={movie.id}
                     href={`/content/movie/${movie.id}`}

@@ -1,6 +1,7 @@
 import { tmdb } from "@/lib/tmdb";
 import Link from "next/link";
 import { getGenres } from "@/lib/genres";
+import SortSelect from "@/components/SortSelect";
 
 type Params = { 
   params: { id: string; page: string }; 
@@ -21,23 +22,26 @@ export async function generateMetadata({ params, searchParams }: Params) {
 export default async function GenrePage({ params, searchParams }: Params) {
   const { id, page } = params;
   const type = searchParams?.type || "movie";
+  const sort_by = (searchParams?.sort as string) || "popularity.desc";
 
   const genres = await getGenres();
   const genre = genres.find((g) => g.id === Number(id));
 
   let genreParam = id;
 
-  // Обрабатываем случай с анимациями
   if (type === "animations") {
-    genreParam = `16,${id}`; // Animation + выбранный жанр
+    genreParam = `16,${id}`; 
   }
 
-  // Загружаем контент
   let resultsRes;
   if (type === "movie" || type === "animations") {
-    resultsRes = await tmdb.get("/discover/movie", { params: { with_genres: genreParam, page } });
+    resultsRes = await tmdb.get("/discover/movie", { 
+      params: { with_genres: genreParam, page, sort_by } 
+    });
   } else {
-    resultsRes = await tmdb.get("/discover/tv", { params: { with_genres: genreParam, page } });
+    resultsRes = await tmdb.get("/discover/tv", { 
+      params: { with_genres: genreParam, page, sort_by } 
+    });
   }
 
   const results = resultsRes.data.results.map((item: any) => ({
@@ -47,9 +51,14 @@ export default async function GenrePage({ params, searchParams }: Params) {
 
   return (
     <main className="p-6">
-      <h1 className="text-2xl font-bold mb-4">
-        {genre ? genre.name : "Unknown Genre"} — Страница {page}
-      </h1>
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-2xl font-bold">
+          {genre ? genre.name : "Unknown Genre"} — Страница {page}
+        </h1>
+
+        {/* Сортировка */}
+        <SortSelect sort_by={sort_by} type={type as string} id={id} page={page} />
+      </div>
 
       {results.length === 0 ? (
         <p>Ничего не найдено 😔</p>
@@ -93,7 +102,7 @@ export default async function GenrePage({ params, searchParams }: Params) {
       <div className="flex justify-center mt-6 gap-4">
         {Number(page) > 1 && (
           <Link
-            href={`/genre/${id}/page/${Number(page) - 1}?type=${type}`}
+            href={`/genre/${id}/page/${Number(page) - 1}?type=${type}&sort=${sort_by}`}
             className="px-4 py-2 bg-gray-700 rounded hover:bg-gray-600 transition"
           >
             Назад
@@ -101,7 +110,7 @@ export default async function GenrePage({ params, searchParams }: Params) {
         )}
         {Number(page) < resultsRes.data.total_pages && (
           <Link
-            href={`/genre/${id}/page/${Number(page) + 1}?type=${type}`}
+            href={`/genre/${id}/page/${Number(page) + 1}?type=${type}&sort=${sort_by}`}
             className="px-4 py-2 bg-gray-700 rounded hover:bg-gray-600 transition"
           >
             Далее

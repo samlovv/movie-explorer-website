@@ -1,37 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-
-const movieGenres = [
-  { id: 28, name: "Action" },
-  { id: 27, name: "Horror" },
-  { id: 35, name: "Comedy" },
-  { id: 18, name: "Drama" },
-  { id: 10749, name: "Romance" },
-];
-
-const tvGenres = [
-  { id: 10759, name: "Action & Adventure" },
-  { id: 16, name: "Animation" },
-  { id: 35, name: "Comedy" },
-  { id: 80, name: "Crime" },
-  { id: 18, name: "Drama" },
-];
-
-const animationGenres = [
-  { id: 16, name: "All Animation" },
-  { id: 35, name: "Comedy" },
-  { id: 10765, name: "Sci-Fi & Fantasy" },
-  { id: 14, name: "Fantasy" },
-  { id: 12, name: "Adventure" },
-];
+import { getGenres, Genre } from "@/lib/genres";
 
 export default function Navbar() {
   const [query, setQuery] = useState("");
-  const [activeMenu, setActiveMenu] = useState<null | "movies" | "tv" | "animations">(null);
+  const [activeMenu, setActiveMenu] = useState<null | "movie" | "tv" | "animations">(null);
+  const [genres, setGenres] = useState<Genre[]>([]);
   const router = useRouter();
+
+  useEffect(() => {
+    async function fetchGenres() {
+      const fetchedGenres = await getGenres();
+      setGenres(fetchedGenres);
+    }
+    fetchGenres();
+  }, []);
 
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -40,21 +26,14 @@ export default function Navbar() {
     setQuery("");
   };
 
-  const renderGenres = (type: "movies" | "tv" | "animations") => {
-    const genres =
-      type === "movies" ? movieGenres : type === "tv" ? tvGenres : animationGenres;
-
-    // query type и animation flag
-    const queryType = type === "movies" ? "movie" : type === "tv" ? "tv" : "movie";
-    const isAnimation = type === "animations" ? 1 : 0;
-
+  const renderGenres = (type: "movie" | "tv" | "animations") => {
     return (
-      <div className="absolute left-0 top-full w-[600px] bg-gray-800 py-6 shadow-lg z-20">
+      <div className="absolute left-0 top-full w-[300px] bg-gray-800 py-6 shadow-lg z-20">
         <div className="max-w-6xl mx-auto grid grid-cols-3 gap-6 px-6">
           {genres.map((genre) => (
             <Link
               key={genre.id}
-              href={`/genre/${genre.id}/page/1?type=${queryType}${isAnimation ? "&animation=1" : ""}`}
+              href={`/genre/${genre.id}/page/1?type=${type}`}
               className="text-white hover:text-red-500 transition"
               onClick={() => setActiveMenu(null)}
             >
@@ -72,15 +51,14 @@ export default function Navbar() {
         Movie Explorer
       </Link>
 
-      {/* Навигация */}
       <div className="flex gap-6 relative">
         <div
           className="relative"
-          onMouseEnter={() => setActiveMenu("movies")}
+          onMouseEnter={() => setActiveMenu("movie")}
           onMouseLeave={() => setActiveMenu(null)}
         >
           <span className="cursor-pointer hover:text-red-500">Movies</span>
-          {activeMenu === "movies" && renderGenres("movies")}
+          {activeMenu === "movie" && renderGenres("movie")}
         </div>
 
         <div
@@ -102,7 +80,6 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Поиск */}
       <form onSubmit={handleSearch} className="flex">
         <input
           type="text"

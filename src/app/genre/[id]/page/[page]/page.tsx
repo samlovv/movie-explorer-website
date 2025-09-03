@@ -2,7 +2,10 @@ import { tmdb } from "@/lib/tmdb";
 import Link from "next/link";
 import { getGenres } from "@/lib/genres";
 
-type Params = { params: { id: string; page: string }; searchParams?: { [key: string]: string | string[] | undefined } };
+type Params = { 
+  params: { id: string; page: string }; 
+  searchParams?: { [key: string]: string | string[] | undefined } 
+};
 
 export async function generateMetadata({ params, searchParams }: Params) {
   const genres = await getGenres();
@@ -18,26 +21,28 @@ export async function generateMetadata({ params, searchParams }: Params) {
 export default async function GenrePage({ params, searchParams }: Params) {
   const { id, page } = params;
   const type = searchParams?.type || "movie";
-  const isAnimation = searchParams?.animation === "1";
 
   const genres = await getGenres();
   const genre = genres.find((g) => g.id === Number(id));
 
-  let genreId = id;
-  if (isAnimation) {
-    // добавляем жанр "Animation" (16) перед выбранным жанром
-    genreId = `16,${id}`;
+  let genreParam = id;
+
+  // Обрабатываем случай с анимациями
+  if (type === "animations") {
+    genreParam = `16,${id}`; // Animation + выбранный жанр
   }
 
-  // грузим контент в зависимости от type
-  const resultsRes =
-    type === "movie"
-      ? await tmdb.get("/discover/movie", { params: { with_genres: genreId, page } })
-      : await tmdb.get("/discover/tv", { params: { with_genres: id, page } });
+  // Загружаем контент
+  let resultsRes;
+  if (type === "movie" || type === "animations") {
+    resultsRes = await tmdb.get("/discover/movie", { params: { with_genres: genreParam, page } });
+  } else {
+    resultsRes = await tmdb.get("/discover/tv", { params: { with_genres: genreParam, page } });
+  }
 
   const results = resultsRes.data.results.map((item: any) => ({
     ...item,
-    media_type: type === "movie" ? "movie" : "tv",
+    media_type: type === "movie" || type === "animations" ? "movie" : "tv",
   }));
 
   return (
@@ -88,9 +93,7 @@ export default async function GenrePage({ params, searchParams }: Params) {
       <div className="flex justify-center mt-6 gap-4">
         {Number(page) > 1 && (
           <Link
-            href={`/genre/${id}/page/${Number(page) - 1}${type ? `?type=${type}` : ""}${
-              isAnimation ? "&animation=1" : ""
-            }`}
+            href={`/genre/${id}/page/${Number(page) - 1}?type=${type}`}
             className="px-4 py-2 bg-gray-700 rounded hover:bg-gray-600 transition"
           >
             Назад
@@ -98,9 +101,7 @@ export default async function GenrePage({ params, searchParams }: Params) {
         )}
         {Number(page) < resultsRes.data.total_pages && (
           <Link
-            href={`/genre/${id}/page/${Number(page) + 1}${type ? `?type=${type}` : ""}${
-              isAnimation ? "&animation=1" : ""
-            }`}
+            href={`/genre/${id}/page/${Number(page) + 1}?type=${type}`}
             className="px-4 py-2 bg-gray-700 rounded hover:bg-gray-600 transition"
           >
             Далее

@@ -39,7 +39,7 @@ export default async function Home() {
   return (
     <main className="p-6 flex gap-6 min-h-screen">
       {/* Sidebar */}
-      <GenreSidebar />
+      
 
       {/* Секции фильмов */}
       <div className="flex-1 flex flex-col gap-12 overflow-y-auto">

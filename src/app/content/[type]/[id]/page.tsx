@@ -7,7 +7,6 @@ type Params = { params: { id: string; type: "movie" | "tv" } };
 export default async function ContentPage({ params }: Params) {
   const { id, type } = params;
 
-  // Получаем данные по типу
   const movieRes = await tmdb.get(`/${type}/${id}`);
   const movie = movieRes.data;
 
@@ -15,18 +14,23 @@ export default async function ContentPage({ params }: Params) {
   const [videosRes, creditsRes, similarRes] = await Promise.all([
     tmdb.get(`/${type}/${id}/videos`),
     tmdb.get(`/${type}/${id}/credits`),
-    tmdb.get(`/${type}/${id}/similar`), // 👈 похожий контент
+    tmdb.get(`/${type}/${id}/similar`),
   ]);
 
   const videos = videosRes.data.results;
   const credits = creditsRes.data;
   const similar = similarRes.data.results;
+
   const trailer = videos.find(
     (v: any) => v.type === "Trailer" && v.site === "YouTube"
   );
-  const cast = credits.cast.slice(0, 12);
 
-  // Название и дата
+  // режиссёр
+  const director = credits.crew.find((c: any) => c.job === "Director");
+
+  // только 5 актёров
+  const cast = credits.cast.slice(0, 5);
+
   const title = type === "movie" ? movie.title : movie.name;
   const releaseDate = type === "movie" ? movie.release_date : movie.first_air_date;
 
@@ -52,12 +56,18 @@ export default async function ContentPage({ params }: Params) {
             ⭐ {movie.vote_average ? movie.vote_average.toFixed(1) : "N/A"}
           </p>
 
+          {director && (
+            <p className="text-white mb-4">
+              🎬 Режиссёр: <span className="font-semibold">{director.name}</span>
+            </p>
+          )}
+
           {/* Жанры */}
           <div className="flex flex-wrap gap-2 mt-2">
             {movie.genres.map((genre: Genre) => (
               <Link
                 key={genre.id}
-                href={`/genre/${genre.id}/page/1`}
+                href={`/genre/${genre.id}/page/1?type=${type}`}
                 className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-500 transition"
               >
                 {genre.name}
@@ -110,10 +120,20 @@ export default async function ContentPage({ params }: Params) {
               </Link>
             ))}
           </div>
+
+          {/* кнопка fullcast */}
+          <div className="mt-4">
+            <Link
+              href={`/content/${type}/${id}/fullcredits`}
+              className="inline-block px-4 py-2 bg-gray-700 rounded hover:bg-gray-600 transition"
+            >
+              Полный состав & команда →
+            </Link>
+          </div>
         </section>
       )}
 
-      {/* Похожий контент в стиле Netflix */}
+      {/* Похожее */}
       {similar.length > 0 && (
         <section className="mt-8">
           <h2 className="text-2xl font-bold mb-4">Похожее</h2>
@@ -139,7 +159,6 @@ export default async function ContentPage({ params }: Params) {
                       alt={simTitle}
                       className="w-full h-auto"
                     />
-                    {/* Метка типа */}
                     <span className="absolute top-2 left-2 bg-red-600 text-white text-xs px-2 py-0.5 rounded">
                       {typeLabel}
                     </span>
@@ -156,8 +175,6 @@ export default async function ContentPage({ params }: Params) {
           </div>
         </section>
       )}
-
-
     </main>
   );
 }

@@ -3,18 +3,20 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { getGenres, Genre } from "@/lib/genres";
+import { getMovieGenres, getTvGenres, Genre } from "@/lib/genres";
 
 export default function Navbar() {
   const [query, setQuery] = useState("");
   const [activeMenu, setActiveMenu] = useState<null | "movie" | "tv" | "animations">(null);
-  const [genres, setGenres] = useState<Genre[]>([]);
+  const [movieGenres, setMovieGenres] = useState<Genre[]>([]);
+  const [tvGenres, setTvGenres] = useState<Genre[]>([]);
   const router = useRouter();
 
   useEffect(() => {
     async function fetchGenres() {
-      const fetchedGenres = await getGenres();
-      setGenres(fetchedGenres);
+      const [movies, tv] = await Promise.all([getMovieGenres(), getTvGenres()]);
+      setMovieGenres(movies);
+      setTvGenres(tv);
     }
     fetchGenres();
   }, []);
@@ -27,6 +29,8 @@ export default function Navbar() {
   };
 
   const renderGenres = (type: "movie" | "tv" | "animations") => {
+    const genres = type === "tv" ? tvGenres : movieGenres;
+
     return (
       <div className="absolute left-0 top-full w-[300px] bg-gray-800 py-6 shadow-lg z-20">
         <div className="max-w-6xl mx-auto grid grid-cols-3 gap-6 px-6">
@@ -76,6 +80,7 @@ export default function Navbar() {
           onMouseLeave={() => setActiveMenu(null)}
         >
           <span className="cursor-pointer hover:text-red-500">Animations</span>
+          {/* В анимациях показываем все жанры фильмов, потому что base жанр = 16 */}
           {activeMenu === "animations" && renderGenres("animations")}
         </div>
       </div>

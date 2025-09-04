@@ -1,7 +1,6 @@
 import { tmdb } from "@/lib/tmdb";
 import Link from "next/link";
-import { getGenres, getGenreNames } from "@/lib/genres";
-import GenreSidebar from "@/components/GenreSidebar";
+import { getAllGenres } from "@/lib/genres"; // если Sidebar нужен
 
 type Movie = {
   id: number;
@@ -17,9 +16,8 @@ async function getMovies(url: string, params = {}) {
 }
 
 export default async function Home() {
-  const genres = await getGenres();
+  const genres = await getAllGenres(); // пригодится для Sidebar
 
-  // Несколько категорий фильмов
   const [popular, horror, romance, drama, upcoming] = await Promise.all([
     getMovies("/movie/popular", { page: 1 }),
     getMovies("/discover/movie", { with_genres: 27, page: 1 }), // ужастики
@@ -38,15 +36,13 @@ export default async function Home() {
 
   return (
     <main className="p-6 flex gap-6 min-h-screen">
-      {/* Sidebar */}
-      
 
       {/* Секции фильмов */}
       <div className="flex-1 flex flex-col gap-12 overflow-y-auto">
         {sections.map((section) => (
           <section key={section.title} className="w-full">
             <h2 className="text-2xl font-bold mb-4">{section.title}</h2>
-            
+
             {/* Контейнер с горизонтальным скроллом */}
             <div className="w-full overflow-x-auto pb-4">
               <div className="flex gap-4" style={{ minWidth: "max-content" }}>
@@ -69,7 +65,9 @@ export default async function Home() {
                       className="w-full h-[180px] object-cover"
                     />
                     <div className="p-1.5">
-                      <h3 className="text-[11px] font-semibold truncate">{movie.title}</h3>
+                      <h3 className="text-[11px] font-semibold truncate">
+                        {movie.title}
+                      </h3>
                       <p className="text-[10px] text-gray-400">
                         ⭐ {movie.vote_average.toFixed(1)}
                       </p>

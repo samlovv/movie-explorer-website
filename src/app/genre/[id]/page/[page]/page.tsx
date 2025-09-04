@@ -1,6 +1,6 @@
 import { tmdb } from "@/lib/tmdb";
 import Link from "next/link";
-import { getGenres } from "@/lib/genres";
+import { getMovieGenres, getTvGenres } from "@/lib/genres";
 import SortSelect from "@/components/SortSelect";
 
 type Params = { 
@@ -9,12 +9,18 @@ type Params = {
 };
 
 export async function generateMetadata({ params, searchParams }: Params) {
-  const genres = await getGenres();
+  const type = (searchParams?.type as string) || "movie";
+
+  const genres = type === "tv" 
+    ? await getTvGenres()
+    : await getMovieGenres();
+
   const genre = genres.find((g) => g.id === Number(params.id));
+
   return {
     title: genre ? `${genre.name} — Page ${params.page}` : "Genre",
     description: genre
-      ? `Discover movies and TV shows in the ${genre.name} genre. Page ${params.page}.`
+      ? `Discover ${type === "tv" ? "TV shows" : "movies"} in the ${genre.name} genre. Page ${params.page}.`
       : "Browse by genre",
   };
 }
@@ -24,29 +30,29 @@ export default async function GenrePage({ params, searchParams }: Params) {
   const type = searchParams?.type || "movie";
   const sort_by = (searchParams?.sort as string) || "popularity.desc";
 
-  const genres = await getGenres();
+  // Получаем жанры в зависимости от типа
+  const genres = type === "tv" 
+    ? await getTvGenres() 
+    : await getMovieGenres();
+
   const genre = genres.find((g) => g.id === Number(id));
 
   let genreParam = id;
-
   if (type === "animations") {
-    genreParam = `16,${id}`; 
+    genreParam = `16,${id}`; // комбинируем Animation + выбранный жанр
   }
 
-  let resultsRes;
-  if (type === "movie" || type === "animations") {
-    resultsRes = await tmdb.get("/discover/movie", { 
-      params: { with_genres: genreParam, page, sort_by } 
-    });
-  } else {
-    resultsRes = await tmdb.get("/discover/tv", { 
-      params: { with_genres: genreParam, page, sort_by } 
-    });
-  }
+  // Загружаем данные
+  const resultsRes = await tmdb.get(
+    type === "tv" 
+      ? "/discover/tv" 
+      : "/discover/movie",
+    { params: { with_genres: genreParam, page, sort_by } }
+  );
 
   const results = resultsRes.data.results.map((item: any) => ({
     ...item,
-    media_type: type === "movie" || type === "animations" ? "movie" : "tv",
+    media_type: type === "tv" ? "tv" : "movie",
   }));
 
   return (

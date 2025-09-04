@@ -1,4 +1,4 @@
-import Link from "next/link";
+/* import Link from "next/link";
 import { getGenres } from "@/lib/genres";
 
 export default async function GenreSidebar() {
@@ -22,3 +22,4 @@ export default async function GenreSidebar() {
     </aside>
   );
 }
+ */

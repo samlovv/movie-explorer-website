@@ -32,13 +32,13 @@ export default function Navbar() {
     const genres = type === "tv" ? tvGenres : movieGenres;
 
     return (
-      <div className="absolute left-0 top-full w-[300px] bg-gray-800 py-6 shadow-lg z-20">
-        <div className="max-w-6xl mx-auto grid grid-cols-3 gap-6 px-6">
+      <div className="absolute left-0 top-full w-[320px] bg-gray-900/95 backdrop-blur-md py-6 shadow-xl rounded-b-lg z-20">
+        <div className="grid grid-cols-2 gap-4 px-8">
           {genres.map((genre) => (
             <Link
               key={genre.id}
               href={`/genre/${genre.id}/page/1?type=${type}`}
-              className="text-white hover:text-red-500 transition"
+              className="text-sm text-gray-200 hover:text-red-500 transition"
               onClick={() => setActiveMenu(null)}
             >
               {genre.name}
@@ -50,18 +50,21 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="bg-gray-900 text-white p-4 flex justify-between items-center relative">
-      <Link href="/" className="text-2xl font-bold">
-        Movie Explorer
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0a]/80 backdrop-blur-lg px-22 py-5 flex justify-between items-center shadow-lg">
+      {/* Лого Netflix-style */}
+      <Link href="/" className="text-2xl font-extrabold tracking-wide">
+        <span className="text-red-600">Movie</span>
+        <span className="text-white">Explorer</span>
       </Link>
 
-      <div className="flex gap-6 relative">
+      {/* Навигация */}
+      <div className="flex gap-10 relative">
         <div
           className="relative"
           onMouseEnter={() => setActiveMenu("movie")}
           onMouseLeave={() => setActiveMenu(null)}
         >
-          <span className="cursor-pointer hover:text-red-500">Movies</span>
+          <span className="cursor-pointer hover:text-red-500 transition">Movies</span>
           {activeMenu === "movie" && renderGenres("movie")}
         </div>
 
@@ -70,7 +73,7 @@ export default function Navbar() {
           onMouseEnter={() => setActiveMenu("tv")}
           onMouseLeave={() => setActiveMenu(null)}
         >
-          <span className="cursor-pointer hover:text-red-500">TV Shows</span>
+          <span className="cursor-pointer hover:text-red-500 transition">TV Shows</span>
           {activeMenu === "tv" && renderGenres("tv")}
         </div>
 
@@ -79,25 +82,25 @@ export default function Navbar() {
           onMouseEnter={() => setActiveMenu("animations")}
           onMouseLeave={() => setActiveMenu(null)}
         >
-          <span className="cursor-pointer hover:text-red-500">Animations</span>
-          {/* В анимациях показываем все жанры фильмов, потому что base жанр = 16 */}
+          <span className="cursor-pointer hover:text-red-500 transition">Animations</span>
           {activeMenu === "animations" && renderGenres("animations")}
         </div>
       </div>
 
+      {/* Поиск */}
       <form onSubmit={handleSearch} className="flex">
         <input
           type="text"
-          placeholder="Поиск..."
+          placeholder="Search..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="px-3 py-1 rounded-l bg-gray-800 text-white focus:outline-none"
+          className="px-3 py-1 rounded-l bg-gray-800/70 text-white focus:outline-none placeholder-gray-400"
         />
         <button
           type="submit"
-          className="px-4 py-1 bg-red-600 rounded-r hover:bg-red-500 transition"
+          className="px-4 py-1 bg-red-600 rounded-r hover:bg-red-500 transition font-semibold"
         >
-          Найти
+          Find
         </button>
       </form>
     </nav>

@@ -17,6 +17,7 @@ export default async function ContentPage({ params }: Params) {
 
   const res = await tmdb.get(`/${type}/${id}`, { params: { append_to_response: "videos,credits,similar" } });
   const movie = res.data;
+  console.log(movie);
 
   const title = getTitle(movie, type);
   const releaseDate = getReleaseDate(movie, type);

@@ -35,13 +35,13 @@ export default function HomePage({ sections, genres }: Props) {
           <section key={section.title} className="w-full">
             <h2 className="text-2xl font-bold mb-4">{section.title}</h2>
 
-            <div className="w-full overflow-x-auto pb-4">
-              <div className="flex gap-4" style={{ minWidth: "max-content" }}>
+            <div className="w-full overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide">
+              <div className="flex gap-4 " style={{ minWidth: "max-content" }}>
                 {section.movies.slice(0, 20).map((movie) => (
                   <Link
                     key={movie.id}
                     href={`/content/movie/${movie.id}`}
-                    className="movie-card min-w-[125px] w-[125px] flex-shrink-0 bg-gray-900 rounded-lg overflow-hidden shadow hover:scale-105 transition-transform duration-300 relative"
+                    className="movie-card snap-start min-w-[125px] w-[125px] flex-shrink-0 bg-gray-900 rounded-lg overflow-hidden shadow hover:scale-105 transition-transform duration-300 relative"
                   >
                     <span className="absolute top-1 left-1 bg-red-600 text-white text-[9px] px-1 py-0.5 rounded z-10">
                       Фильм

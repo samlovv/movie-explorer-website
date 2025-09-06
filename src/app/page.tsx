@@ -1,6 +1,7 @@
 import { tmdb } from "@/lib/tmdb";
 import { getAllGenres } from "@/lib/genres";
 import HomePage from "@/components/HomePage";
+import PopularMovies from "@/components/PopularMovies";
 
 type Movie = {
   id: number;
@@ -18,8 +19,10 @@ async function getMovies(url: string, params = {}) {
 export default async function Home() {
   const genres = await getAllGenres();
 
-  const [popular, horror, romance, drama, upcoming] = await Promise.all([
-    getMovies("/movie/popular", { page: 1 }),
+  const popularRes = await tmdb.get("/movie/popular");
+  const popularMovies = popularRes.data.results;
+
+  const [ horror, romance, drama, upcoming] = await Promise.all([
     getMovies("/discover/movie", { with_genres: 27, page: 1 }), // ужастики
     getMovies("/discover/movie", { with_genres: 10749, page: 1 }), // романтика
     getMovies("/discover/movie", { with_genres: 18, page: 1 }), // драмы
@@ -27,12 +30,16 @@ export default async function Home() {
   ]);
 
   const sections = [
-    { title: "Popular now", movies: popular },
+    
     { title: "Horror", movies: horror },
     { title: "Romance", movies: romance },
     { title: "Drama", movies: drama },
     { title: "Upcoming", movies: upcoming },
   ];
 
-  return <div className="mt-16"><HomePage sections={sections} genres={genres} /></div>;
+  return <div className="mt-16">
+            <PopularMovies movies={popularMovies} genres={genres} />
+            <HomePage sections={sections} genres={genres} />
+            
+         </div>;
 }

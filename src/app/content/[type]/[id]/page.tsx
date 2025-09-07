@@ -9,7 +9,6 @@ export default async function ContentPage({ params }: Params) {
   const res = await tmdb.get(`/${type}/${id}`, {
     params: { append_to_response: "videos,credits,similar" },
   });
-  console.log(res.data);
 
   return <div className="mt-16">
       <ContentDetails movie={res.data} type={type} />

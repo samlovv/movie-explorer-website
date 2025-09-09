@@ -3,15 +3,15 @@ import Link from "next/link";
 import { getMovieGenres, getTvGenres } from "@/lib/genres";
 import SortSelect from "@/components/SortSelect";
 
-type Params = { 
-  params: { id: string; page: string }; 
-  searchParams?: { [key: string]: string | string[] | undefined } 
+type Params = {
+  params: { id: string; page: string };
+  searchParams?: { [key: string]: string | string[] | undefined };
 };
 
 export async function generateMetadata({ params, searchParams }: Params) {
   const type = (searchParams?.type as string) || "movie";
 
-  const genres = type === "tv" 
+  const genres = type === "tv"
     ? await getTvGenres()
     : await getMovieGenres();
 
@@ -30,23 +30,21 @@ export default async function GenrePage({ params, searchParams }: Params) {
   const type = searchParams?.type || "movie";
   const sort_by = (searchParams?.sort as string) || "popularity.desc";
 
-  // Получаем жанры в зависимости от типа
-  const genres = type === "tv" 
-    ? await getTvGenres() 
+  // Get genres depending on type
+  const genres = type === "tv"
+    ? await getTvGenres()
     : await getMovieGenres();
 
   const genre = genres.find((g) => g.id === Number(id));
 
   let genreParam = id;
   if (type === "animations") {
-    genreParam = `16,${id}`; // комбинируем Animation + выбранный жанр
+    genreParam = `16,${id}`;
   }
 
-  // Загружаем данные
+  // Fetch data
   const resultsRes = await tmdb.get(
-    type === "tv" 
-      ? "/discover/tv" 
-      : "/discover/movie",
+    type === "tv" ? "/discover/tv" : "/discover/movie",
     { params: { with_genres: genreParam, page, sort_by } }
   );
 
@@ -56,30 +54,36 @@ export default async function GenrePage({ params, searchParams }: Params) {
   }));
 
   return (
-    <main className="p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold">
-          {genre ? genre.name : "Unknown Genre"} — Страница {page}
+    <main className="p-6 md:p-12 mt-16">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
+        <h1 className="text-3xl font-bold text-white">
+          {genre ? genre.name : "Unknown Genre"} — Page {page}
         </h1>
-
-        {/* Сортировка */}
         <SortSelect sort_by={sort_by} type={type as string} id={id} page={page} />
       </div>
 
+      {/* Grid of cards */}
       {results.length === 0 ? (
-        <p>Ничего не найдено 😔</p>
+        <p className="text-gray-400 text-center">Nothing found 😔</p>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-6">
           {results.map((item: any) => {
             const title = item.media_type === "movie" ? item.title : item.name;
-            const typeLabel = item.media_type === "movie" ? "Фильм" : "Сериал";
+            const typeLabel = item.media_type === "movie" ? "Movie" : "TV Show";
 
             return (
               <Link
-                key={item.id + item.media_type}
+                key={`${item.media_type}-${item.id}`}
                 href={`/content/${item.media_type}/${item.id}`}
-                className="bg-gray-900 rounded-lg overflow-hidden shadow hover:scale-105 transition relative"
+                className="group relative rounded-xl overflow-hidden shadow-lg transform transition duration-300 hover:scale-105 bg-gray-900"
               >
+                {/* Rating */}
+                <span className="absolute top-2 left-2 bg-black/70 backdrop-blur-md text-yellow-400 text-xs font-semibold px-2 py-1 rounded-full z-10">
+                  ⭐ {item.vote_average ? item.vote_average.toFixed(1) : "N/A"}
+                </span>
+
+                {/* Poster */}
                 <img
                   src={
                     item.poster_path
@@ -87,16 +91,15 @@ export default async function GenrePage({ params, searchParams }: Params) {
                       : "/no-image.png"
                   }
                   alt={title}
-                  className="w-full h-auto"
+                  className="w-full h-[240px] md:h-[300px] object-cover"
                 />
-                <span className="absolute top-2 left-2 bg-red-600 text-white text-xs px-2 py-0.5 rounded">
-                  {typeLabel}
-                </span>
-                <div className="p-2">
-                  <h3 className="text-sm font-semibold truncate">{title}</h3>
-                  <p className="text-xs text-gray-400">
-                    ⭐ {item.vote_average ? item.vote_average.toFixed(1) : "N/A"}
-                  </p>
+
+                {/* Gradient + info */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3">
+                  <h3 className="text-sm md:text-base font-semibold text-white line-clamp-2">
+                    {title}
+                  </h3>
+                  <p className="text-[10px] md:text-xs text-gray-300 mt-1">{typeLabel}</p>
                 </div>
               </Link>
             );
@@ -104,22 +107,22 @@ export default async function GenrePage({ params, searchParams }: Params) {
         </div>
       )}
 
-      {/* Пагинация */}
-      <div className="flex justify-center mt-6 gap-4">
+      {/* Pagination */}
+      <div className="flex justify-center mt-10 gap-6">
         {Number(page) > 1 && (
           <Link
             href={`/genre/${id}/page/${Number(page) - 1}?type=${type}&sort=${sort_by}`}
-            className="px-4 py-2 bg-gray-700 rounded hover:bg-gray-600 transition"
+            className="px-4 py-2 rounded-lg bg-gray-800 text-white hover:bg-gray-700 transition"
           >
-            Назад
+            ⬅ Previous
           </Link>
         )}
         {Number(page) < resultsRes.data.total_pages && (
           <Link
             href={`/genre/${id}/page/${Number(page) + 1}?type=${type}&sort=${sort_by}`}
-            className="px-4 py-2 bg-gray-700 rounded hover:bg-gray-600 transition"
+            className="px-4 py-2 rounded-lg bg-gray-800 text-white hover:bg-gray-700 transition"
           >
-            Далее
+            Next ➡
           </Link>
         )}
       </div>

@@ -8,6 +8,7 @@ type Params = {
 export default async function ActorFullCreditsPage({ params }: Params) {
   const res = await tmdb.get(`/person/${params.id}`);
   const actor = res.data;
+  console.log(actor);
 
   const creditsRes = await tmdb.get(`/person/${params.id}/combined_credits`);
   const credits = creditsRes.data.cast;
@@ -44,7 +45,7 @@ export default async function ActorFullCreditsPage({ params }: Params) {
             <div className="flex gap-4" style={{ minWidth: "max-content" }}>
               {movies.map((item: any) => (
                 <Link
-                  key={item.id}
+                  key={`movie-${item.credit_id || item.id}`}
                   href={`/content/movie/${item.id}`}
                   className="group movie-card snap-start min-w-[140px] w-[140px] md:min-w-[180px] md:w-[180px] flex-shrink-0 bg-gray-900 rounded-xl overflow-hidden shadow-lg relative transform transition duration-300 hover:scale-105"
                 >
@@ -77,7 +78,7 @@ export default async function ActorFullCreditsPage({ params }: Params) {
             <div className="flex gap-4" style={{ minWidth: "max-content" }}>
               {tvs.map((item: any) => (
                 <Link
-                  key={item.id}
+                  key={`tv-${item.credit_id || item.id}`}
                   href={`/content/tv/${item.id}`}
                   className="group movie-card snap-start min-w-[140px] w-[140px] md:min-w-[180px] md:w-[180px] flex-shrink-0 bg-gray-900 rounded-xl overflow-hidden shadow-lg relative transform transition duration-300 hover:scale-105"
                 >

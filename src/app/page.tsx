@@ -22,11 +22,13 @@ export default async function Home() {
   const popularRes = await tmdb.get("/movie/popular");
   const popularMovies = popularRes.data.results;
 
-  const [ horror, romance, drama, upcoming] = await Promise.all([
+  const [ horror, romance, drama, upcoming, comedy] = await Promise.all([
     getMovies("/discover/movie", { with_genres: 27, page: 1 }), // ужастики
     getMovies("/discover/movie", { with_genres: 10749, page: 1 }), // романтика
     getMovies("/discover/movie", { with_genres: 18, page: 1 }), // драмы
     getMovies("/movie/upcoming", { page: 1 }), // новинки
+    getMovies("/discover/movie", { with_genres: 35, page: 1 }), // комедии
+
   ]);
 
   const sections = [
@@ -35,6 +37,7 @@ export default async function Home() {
     { title: "Romance", movies: romance },
     { title: "Drama", movies: drama },
     { title: "Upcoming", movies: upcoming },
+    { title: "Comedy", movies: comedy },
   ];
 
   return <div className="mt-16">

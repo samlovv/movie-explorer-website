@@ -2,7 +2,6 @@
 
 import { Genre } from "@/lib/genres";
 import Link from "next/link";
-import { X } from "lucide-react";
 
 type Props = {
   open: boolean;
@@ -45,14 +44,6 @@ export default function MobileMenu({
 
   return (
     <div className="fixed inset-0 bg-black/95 backdrop-blur-lg z-40 flex flex-col items-start p-6 overflow-y-auto animate-slide-in">
-      {/* Close button */}
-      <button
-        className="absolute top-6 right-6 text-gray-300"
-        onClick={onClose}
-      >
-        <X size={28} />
-      </button>
-
       {/* Search */}
       <form onSubmit={handleSearch} className="flex w-full mt-12 mb-6">
         <input

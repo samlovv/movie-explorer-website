@@ -1,6 +1,7 @@
 import { tmdb } from "@/lib/tmdb";
 import Link from "next/link";
 
+
 type Params = { params: { id: string; type: "movie" | "tv" } };
 
 export default async function FullCreditsPage({ params }: Params) {

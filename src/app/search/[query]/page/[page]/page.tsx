@@ -1,8 +1,18 @@
 import { tmdb } from "@/lib/tmdb";
 import Link from "next/link";
 import { getMovieGenres, getTvGenres } from "@/lib/genres";
+import type { Metadata } from "next";
 
 type Params = { params: { query: string; page: string } };
+
+export async function generateMetadata({ params }: Params): Promise<Metadata> {
+  const { query, page } = params;
+  return {
+    title: `Search results for: "${decodeURIComponent(query)}" — Page ${page}`,
+    description: `Search results for: "${decodeURIComponent(query)}" — Page ${page}. Discover movies and TV shows on Movie Explorer.`,
+  };
+}
+
 
 export default async function SearchPage({ params }: Params) {
   const { query, page } = params;

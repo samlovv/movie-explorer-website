@@ -3,10 +3,10 @@ import ContentDetails from "@/components/ContentDetails";
 import type { Metadata } from "next";
 
 
-type Params = { params: { id: string; type: "movie" | "tv" } };
+type Params = { params: Promise<{ id: string; type: "movie" | "tv" }> };
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
-  const { type, id } = params;
+  const { type, id } = await params;
 
   const res = await fetch(
     `https://api.themoviedb.org/3/${type}/${id}?api_key=${process.env.NEXT_PUBLIC_TMDB_API_KEY}&language=en-US&append_to_response=videos,credits`
@@ -35,7 +35,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 }
 
 export default async function ContentPage({ params }: Params) {
-  const { id, type } = params;
+  const { id, type } = await params;
 
   const res = await tmdb.get(`/${type}/${id}`, {
     params: { append_to_response: "videos,credits,similar" },

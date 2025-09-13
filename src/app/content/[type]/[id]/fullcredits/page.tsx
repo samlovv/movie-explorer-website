@@ -2,18 +2,23 @@ import { tmdb } from "@/lib/tmdb";
 import Link from "next/link";
 import type { Metadata } from "next";
 
-type Params = { params: { id: string; type: "movie" | "tv" } };
+// Define the expected params type
+interface PageProps {
+  params: Promise<{ id: string; type: "movie" | "tv" }>;
+}
 
-export async function generateMetadata({ params }: Params): Promise<Metadata> {
-  const { id, type } = params;
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  // Await the params promise
+  const { id, type } = await params;
   return {
     title: `Full Cast & Crew | Movie Explorer`,
     description: `Full cast and crew details for this ${type === "movie" ? "movie" : "TV show"}. Discover movies and TV shows on Movie Explorer.`,
   };
 }
 
-export default async function FullCreditsPage({ params }: Params) {
-  const { id, type } = params;
+export default async function FullCreditsPage({ params }: PageProps) {
+  // Await the params promise
+  const { id, type } = await params;
 
   const creditsRes = await tmdb.get(`/${type}/${id}/credits`);
   const credits = creditsRes.data;
@@ -119,7 +124,7 @@ export default async function FullCreditsPage({ params }: Params) {
           href={`/content/${type}/${id}`}
           className="inline-block px-5 py-2 bg-red-600 text-white rounded-lg hover:bg-red-500 transition font-semibold"
         >
-          ← Back to Movie
+          ← Back to {type === "movie" ? "Movie" : "TV Show"}
         </Link>
       </div>
     </main>

@@ -2,15 +2,22 @@ import { tmdb } from "@/lib/tmdb";
 import Link from "next/link";
 import type { Metadata } from "next";
 
-type Params = {
-  params: { id: string };
-};
+// Define the expected params type
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
 
-export async function generateMetadata({ params }: Params): Promise<Metadata> {
-  const res = await tmdb.get(`/person/${params.id}`);
+export async function generateMetadata(
+  { params }: PageProps
+): Promise<Metadata> {
+  // Await the params promise
+  const { id } = await params;
+  const res = await tmdb.get(`/person/${id}`);
   const actor = res.data;
   const name = actor.name || "Actor";
-  const overview = actor.biography || "Discover movies and TV shows on Movie Explorer.";
+  const overview =
+    actor.biography || "Discover movies and TV shows on Movie Explorer.";
+
   return {
     title: `${name} | Movie Explorer`,
     description: overview,
@@ -29,16 +36,20 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   };
 }
 
-export default async function ActorFullCreditsPage({ params }: Params) {
-  const res = await tmdb.get(`/person/${params.id}`);
+export default async function ActorFullCreditsPage(
+  { params }: PageProps
+) {
+  // Await the params promise
+  const { id } = await params;
+  const res = await tmdb.get(`/person/${id}`);
   const actor = res.data;
-  console.log(actor);
 
-  const creditsRes = await tmdb.get(`/person/${params.id}/combined_credits`);
+  const creditsRes = await tmdb.get(`/person/${id}/combined_credits`);
   const credits = creditsRes.data.cast;
 
-  // Разделяем по типу
-  const movies = credits.filter((c: any) => c.media_type === "movie").slice(0, 20);
+  const movies = credits
+    .filter((c: any) => c.media_type === "movie")
+    .slice(0, 20);
   const tvs = credits.filter((c: any) => c.media_type === "tv").slice(0, 20);
 
   return (

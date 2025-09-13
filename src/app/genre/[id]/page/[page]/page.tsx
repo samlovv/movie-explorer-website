@@ -3,32 +3,38 @@ import Link from "next/link";
 import { getMovieGenres, getTvGenres } from "@/lib/genres";
 import SortSelect from "@/components/SortSelect";
 
-type Params = {
-  params: { id: string; page: string };
-  searchParams?: { [key: string]: string | string[] | undefined };
-};
+// Define the expected params type as a Promise
+interface PageProps {
+  params: Promise<{ id: string; page: string }>;
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
+}
 
-export async function generateMetadata({ params, searchParams }: Params) {
-  const type = (searchParams?.type as string) || "movie";
+export async function generateMetadata({ params, searchParams }: PageProps) {
+  // Await the promises first
+  const { id } = await params;
+  const searchParamsObj = await searchParams;
+  const type = (searchParamsObj?.type as string) || "movie";
 
   const genres = type === "tv"
     ? await getTvGenres()
     : await getMovieGenres();
 
-  const genre = genres.find((g) => g.id === Number(params.id));
+  const genre = genres.find((g) => g.id === Number(id));
 
   return {
-    title: genre ? `${genre.name} — Page ${params.page}` : "Genre",
+    title: genre ? `${genre.name} — Page ${id}` : "Genre",
     description: genre
-      ? `Discover ${type === "tv" ? "TV shows" : "movies"} in the ${genre.name} genre. Page ${params.page}.`
+      ? `Discover ${type === "tv" ? "TV shows" : "movies"} in the ${genre.name} genre. Page ${id}.`
       : "Browse by genre",
   };
 }
 
-export default async function GenrePage({ params, searchParams }: Params) {
-  const { id, page } = params;
-  const type = searchParams?.type || "movie";
-  const sort_by = (searchParams?.sort as string) || "popularity.desc";
+export default async function GenrePage({ params, searchParams }: PageProps) {
+  // Await the promises first
+  const { id, page } = await params;
+  const searchParamsObj = await searchParams;
+  const type = searchParamsObj?.type || "movie";
+  const sort_by = (searchParamsObj?.sort as string) || "popularity.desc";
 
   // Get genres depending on type
   const genres = type === "tv"
@@ -69,62 +75,61 @@ export default async function GenrePage({ params, searchParams }: Params) {
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-6">
           {results.map((item: any) => {
-  const title = item.media_type === "movie" ? item.title : item.name;
+            const title = item.media_type === "movie" ? item.title : item.name;
 
-  // Находим жанры по ID
-  const itemGenres = (item.genre_ids || [])
-    .map((gid: number) => genres.find((g) => g.id === gid))
-    .filter(Boolean);
+            // Находим жанры по ID
+            const itemGenres = (item.genre_ids || [])
+              .map((gid: number) => genres.find((g) => g.id === gid))
+              .filter(Boolean);
 
-  return (
-    <Link
-      key={`${item.media_type}-${item.id}`}
-      href={`/content/${item.media_type}/${item.id}`}
-      className="group relative rounded-xl overflow-hidden shadow-lg transform transition duration-300 hover:scale-105 bg-gray-900"
-    >
-      {/* Rating */}
-      <span className="absolute top-2 left-2 bg-black/70 backdrop-blur-md text-yellow-400 text-xs font-semibold px-2 py-1 rounded-full z-10">
-        ⭐ {item.vote_average ? item.vote_average.toFixed(1) : "N/A"}
-      </span>
-
-      {/* Poster */}
-      <img
-        src={
-          item.poster_path
-            ? `https://image.tmdb.org/t/p/w500${item.poster_path}`
-            : "/no-image.png"
-        }
-        alt={title}
-        className="w-full h-[240px] md:h-[300px] object-cover"
-      />
-
-      {/* Gradient + info */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3">
-        <h3 className="text-sm md:text-base font-semibold text-white line-clamp-2">
-          {title}
-        </h3>
-        {/* Жанры */}
-        <div className="flex flex-wrap gap-1 mt-1">
-          {itemGenres.length > 0 ? (
-            itemGenres.map((g: any) => (
-              <h1
-                key={g.id}
-                className="text-[10px] md:text-xs text-gray-300 mt-1"
+            return (
+              <Link
+                key={`${item.media_type}-${item.id}`}
+                href={`/content/${item.media_type}/${item.id}`}
+                className="group relative rounded-xl overflow-hidden shadow-lg transform transition duration-300 hover:scale-105 bg-gray-900"
               >
-                {g.name}
-              </h1>
-            ))
-          ) : (
-            <span className="text-[10px] md:text-xs text-gray-400">
-              No genres
-            </span>
-          )}
-        </div>
-      </div>
-    </Link>
-  );
-})}
+                {/* Rating */}
+                <span className="absolute top-2 left-2 bg-black/70 backdrop-blur-md text-yellow-400 text-xs font-semibold px-2 py-1 rounded-full z-10">
+                  ⭐ {item.vote_average ? item.vote_average.toFixed(1) : "N/A"}
+                </span>
 
+                {/* Poster */}
+                <img
+                  src={
+                    item.poster_path
+                      ? `https://image.tmdb.org/t/p/w500${item.poster_path}`
+                      : "/no-image.png"
+                  }
+                  alt={title}
+                  className="w-full h-[240px] md:h-[300px] object-cover"
+                />
+
+                {/* Gradient + info */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3">
+                  <h3 className="text-sm md:text-base font-semibold text-white line-clamp-2">
+                    {title}
+                  </h3>
+                  {/* Жанры */}
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {itemGenres.length > 0 ? (
+                      itemGenres.map((g: any) => (
+                        <h1
+                          key={g.id}
+                          className="text-[10px] md:text-xs text-gray-300 mt-1"
+                        >
+                          {g.name}
+                        </h1>
+                      ))
+                    ) : (
+                      <span className="text-[10px] md:text-xs text-gray-400">
+                        No genres
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
         </div>
       )}
 

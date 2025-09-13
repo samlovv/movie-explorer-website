@@ -34,7 +34,7 @@ A modern web app to discover, search, and explore movies with beautiful UI and r
 ## 📦 Installation
 
 ```bash
-git clone https://github.com/yourusername/movie-explorer.git
+git clone https://github.com/samlovv/movie-explorer.git
 cd movie-explorer
 npm install
 npm start

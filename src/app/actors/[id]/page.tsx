@@ -1,9 +1,33 @@
 import { tmdb } from "@/lib/tmdb";
 import Link from "next/link";
+import type { Metadata } from "next";
 
 type Params = {
   params: { id: string };
 };
+
+export async function generateMetadata({ params }: Params): Promise<Metadata> {
+  const res = await tmdb.get(`/person/${params.id}`);
+  const actor = res.data;
+  const name = actor.name || "Actor";
+  const overview = actor.biography || "Discover movies and TV shows on Movie Explorer.";
+  return {
+    title: `${name} | Movie Explorer`,
+    description: overview,
+    openGraph: {
+      title: `${name} | Movie Explorer`,
+      description: overview,
+      images: actor.profile_path
+        ? [`https://image.tmdb.org/t/p/w500${actor.profile_path}`]
+        : [],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${name} | Movie Explorer`,
+      description: overview,
+    },
+  };
+}
 
 export default async function ActorFullCreditsPage({ params }: Params) {
   const res = await tmdb.get(`/person/${params.id}`);

@@ -1,8 +1,16 @@
 import { tmdb } from "@/lib/tmdb";
 import Link from "next/link";
-
+import type { Metadata } from "next";
 
 type Params = { params: { id: string; type: "movie" | "tv" } };
+
+export async function generateMetadata({ params }: Params): Promise<Metadata> {
+  const { id, type } = params;
+  return {
+    title: `Full Cast & Crew | Movie Explorer`,
+    description: `Full cast and crew details for this ${type === "movie" ? "movie" : "TV show"}. Discover movies and TV shows on Movie Explorer.`,
+  };
+}
 
 export default async function FullCreditsPage({ params }: Params) {
   const { id, type } = params;

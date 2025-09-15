@@ -2,8 +2,11 @@
 
 A modern web app to discover, search, and explore movies with beautiful UI and rich details.
 
+
+🌐 **Live Demo:** [movie-explorer-website.vercel.app](https://movie-explorer-website.vercel.app)
+
 ![Movie Explorer Home](docs/screens/home%20page.png)
-*Home screen with trending movies*
+
 
 ---
 
